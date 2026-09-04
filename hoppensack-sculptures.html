@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoppensack</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #000;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* --- FRONT PAGE --- */
+    #front-page {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      cursor: pointer;
+      transition: opacity 0.8s ease;
+    }
+
+    #front-page.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #front-page h1 {
+      font-size: clamp(3rem, 10vw, 8rem);
+      color: #00ff41;
+      letter-spacing: 0.15em;
+      text-transform: lowercase;
+      font-weight: 300;
+      animation: pulse 2.5s ease-in-out infinite;
+      user-select: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    /* --- FULLSCREEN IMAGE --- */
+    #image-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease;
+    }
+
+    #image-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #image-overlay img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* --- SHOP PAGE --- */
+    #shop-page {
+      min-height: 100vh;
+      background: #0a0a0a;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.2s ease;
+      padding: 0;
+    }
+
+    #shop-page.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .shop-header {
+      padding: 3rem 5vw 2rem;
+      border-bottom: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .shop-header h2 {
+      font-size: 1.5rem;
+      color: #00ff41;
+      letter-spacing: 0.2em;
+      text-transform: lowercase;
+      font-weight: 400;
+    }
+
+    .shop-header nav a {
+      color: #888;
+      text-decoration: none;
+      margin-left: 2rem;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+
+    .shop-header nav a:hover {
+      color: #00ff41;
+    }
+
+    .hero {
+      padding: 6rem 5vw;
+      text-align: center;
+    }
+
+    .hero h3 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 300;
+      color: #e0e0e0;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      color: #666;
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .sculptures-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2px;
+      padding: 0 5vw 5rem;
+    }
+
+    .sculpture-card {
+      background: #111;
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 3/4;
+      cursor: pointer;
+      transition: transform 0.4s ease;
+    }
+
+    .sculpture-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .sculpture-card .placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+    }
+
+    .sculpture-card:hover .placeholder {
+      background: linear-gradient(135deg, #1f1f1f 0%, #141414 100%);
+    }
+
+    .sculpture-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.5rem;
+      background: linear-gradient(transparent, rgba(0,0,0,0.9));
+    }
+
+    .sculpture-info h4 {
+      color: #e0e0e0;
+      font-weight: 400;
+      font-size: 1.1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .sculpture-info .price {
+      color: #00ff41;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+    }
+
+    .footer {
+      border-top: 1px solid #1a1a1a;
+      padding: 3rem 5vw;
+      text-align: center;
+      color: #444;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+    }
+
+    .countdown-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: #00ff41;
+      width: 0%;
+      z-index: 95;
+      transition: width linear;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Front Page -->
+  <div id="front-page">
+    <h1>hoppensack</h1>
+  </div>
+
+  <!-- Countdown Bar -->
+  <div id="countdown-bar" class="countdown-bar"></div>
+
+  <!-- Fullscreen Image Overlay -->
+  <div id="image-overlay">
+    <img src="https://images.unsplash.com/photo-1545959682-a27596b6c8c3?w=1920&q=80" alt="Sculpture">
+  </div>
+
+  <!-- Shop Page -->
+  <div id="shop-page">
+    <header class="shop-header">
+      <h2>hoppensack</h2>
+      <nav>
+        <a href="#">Collection</a>
+        <a href="#">Artists</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h3>Sculptures That Command Space</h3>
+      <p>Curated contemporary sculptures from emerging and established artists. Each piece is selected for its presence, material honesty, and ability to transform the space it inhabits.</p>
+    </section>
+
+    <section class="sculptures-grid">
+      <div class="sculpture-card">
+        <div class="placeholder">[ Sculpture Image ]</div>
+        <div class="sculpture-info">
+          <h4>Untitled Form VII</h4>
+          <div class="price">€4,200</div>
+        </div>
+      </div>
+      <div class="sculpture-card">
+        <div class="placeholder">[ Sculpture Image ]</div>
+        <div class="sculpture-info">
+          <h4>Void Studies I</h4>
+          <div class="price">€6,800</div>
+        </div>
+      </div>
+      <div class="sculpture-card">
+        <div class="placeholder">[ Sculpture Image ]</div>
+        <div class="sculpture-info">
+          <h4>Bronze Accumulation</h4>
+          <div class="price">€12,500</div>
+        </div>
+      </div>
+      <div class="sculpture-card">
+        <div class="placeholder">[ Sculpture Image ]</div>
+        <div class="sculpture-info">
+          <h4>Marble Tension</h4>
+          <div class="price">€8,900</div>
+        </div>
+      </div>
+      <div class="sculpture-card">
+        <div class="placeholder">[ Sculpture Image ]</div>
+        <div class="sculpture-info">
+          <h4>Steel Gesture #3</h4>
+          <div class="price">€5,400</div>
+        </div>
+      </div>
+      <div class="sculpture-card">
+        <div class="placeholder">[ Sculpture Image ]</div>
+        <div class="sculpture-info">
+          <h4>Fragmented Torso</h4>
+          <div class="price">€7,100</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      &copy; 2026 Hoppensack. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+    const frontPage = document.getElementById('front-page');
+    const imageOverlay = document.getElementById('image-overlay');
+    const shopPage = document.getElementById('shop-page');
+    const countdownBar = document.getElementById('countdown-bar');
+
+    let state = 'front'; // front -> image -> shop
+
+    frontPage.addEventListener('click', () => {
+      if (state !== 'front') return;
+      state = 'image';
+
+      // Fade out front page
+      frontPage.classList.add('hidden');
+
+      // Show fullscreen image
+      setTimeout(() => {
+        imageOverlay.classList.add('active');
+      }, 400);
+
+      // Animate countdown bar
+      setTimeout(() => {
+        countdownBar.style.transition = 'width 15s linear';
+        countdownBar.style.width = '100%';
+      }, 800);
+
+      // Transition to shop after 15 seconds
+      setTimeout(() => {
+        state = 'shop';
+        imageOverlay.classList.remove('active');
+        shopPage.classList.add('active');
+        countdownBar.style.opacity = '0';
+      }, 15800);
+    });
+  </script>
+
+</body>
+</html>
